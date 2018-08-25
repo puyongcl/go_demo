@@ -18,7 +18,7 @@ type QueryRsp struct {
 
 type QueryListRsp struct {
 	BaseRSP
-	Data []model.TOrder `json:"data"`
+	Data []model.Order `json:"data"`
 }
 
 func SendSuccessRsp(c *gin.Context, data interface{}) {

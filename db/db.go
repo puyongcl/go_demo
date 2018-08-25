@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/pkg/errors"
 	"go_demo/db/config"
 	"go_demo/model"
 	"gorm"
@@ -37,24 +38,24 @@ func init() {
 }
 
 func createDB(dbc *config.DBCfg) error {
-	conn := fmt.Sprintf("%s:%s@tcp(%s:%d)", dbc.Username, dbc.Pwd, dbc.Addr, dbc.Port)
+	conn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbc.Username, dbc.Pwd, dbc.Addr, dbc.Port, "information_schema")
 	db, err := gorm.Open("mysql", conn)
 	if err != nil {
-		return err
+		return errors.New("open fail：" + err.Error())
 	}
 	defer db.Close()
 
-	sql := "create database " + dbc.DBName
+	sql := "create database if not exists " + dbc.DBName
 	err = db.Exec(sql).Error
 	if err != nil {
-		return err
+		return errors.New("create database fail：" + err.Error())
 	}
 
 	return nil
 }
 
 func connDB(dbc *config.DBCfg) (*gorm.DB, error) {
-	conn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+	conn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		dbc.Username, dbc.Pwd, dbc.Addr, dbc.Port, dbc.DBName)
 	db, err := gorm.Open("mysql", conn)
 	if err != nil {
@@ -69,5 +70,5 @@ func GetDB() *gorm.DB {
 }
 
 func clearTables() {
-	db.Exec("truncate DemoOrder")
+	db.Exec("truncate order")
 }

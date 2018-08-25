@@ -7,7 +7,7 @@ import (
 
 type DBCfg struct {
 	Addr     string `json:"db_addr"`
-	Port     uint   `json:"db_port"`
+	Port     string `json:"db_port"`
 	Username string `json:"db_user_name"`
 	Pwd      string `json:"db_pwd"`
 	DBName   string `json:"db_name"`

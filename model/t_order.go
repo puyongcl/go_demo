@@ -8,7 +8,7 @@ import (
 /* data model*/
 
 // demo_order
-type TOrder struct {
+type Order struct {
 	Id       uint      `json:"id" gorm:"primary_key"`
 	OrderId  string    `json:"order_id" gorm:"type:varchar(64);not null;unique"`
 	UserName string    `json:"user_name" gorm:"type:varchar(64)"`
@@ -19,9 +19,9 @@ type TOrder struct {
 }
 
 func CheckTbl(db *gorm.DB) bool {
-	return db.HasTable(&TOrder{})
+	return db.HasTable(&Order{})
 }
 
 func CreateTbl(db *gorm.DB) error {
-	return db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&TOrder{}).Error
+	return db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&Order{}).Error
 }

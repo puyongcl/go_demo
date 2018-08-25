@@ -1,6 +1,6 @@
 {
   "db_addr":"localhost",
-  "db_port":3306,
+  "db_port":"3306",
   "db_user_name":"root",
   "db_pwd":"root",
   "db_name":"test"

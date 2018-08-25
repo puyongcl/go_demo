@@ -56,7 +56,7 @@ func UpdateOrderHandler(c *gin.Context) {
 // 获取order详情
 func GetOrderHandler(c *gin.Context) {
 	orderid := c.Query("order_id")
-	order := model.TOrder{OrderId: orderid}
+	order := model.Order{OrderId: orderid}
 	if err := service.GetOrder(&order); err != nil {
 		err1 := "get order error：" + err.Error()
 		log.Println(err1)
@@ -75,7 +75,7 @@ func GetOrderHandler(c *gin.Context) {
 // 获取 demo_order 列表 （需要包含： 模糊查找、根据创建时间，金额排序）
 func ListOrderByUserNameHandler(c *gin.Context) {
 	usernameKey := c.Query("user_name_fuzzy_lookup_key")
-	var order []model.TOrder
+	var order []model.Order
 	if err := service.GetOrderListByUserName(usernameKey, order); err != nil {
 		err1 := "get order list by username error：" + err.Error()
 		log.Println(err1)

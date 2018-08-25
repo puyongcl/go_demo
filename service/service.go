@@ -13,32 +13,32 @@ func AddNewOrder(username string, amount float64, status string, fileURL string)
 	if err != nil {
 		return errors.New("add new order error" + err.Error())
 	}
-	order := model.TOrder{OrderId: orderid, UserName: username, Amount: amount,
+	order := model.Order{OrderId: orderid, UserName: username, Amount: amount,
 		Status: status, FileUrl: fileURL, CreateAt: time.Now()}
 
 	return insertNewOrderRecord(&order)
 }
 
 func UpdateOrder(orderid string, amount float64, status string, fileURL string) error {
-	order := model.TOrder{OrderId: orderid, Amount: amount, Status: status, FileUrl: fileURL}
+	order := model.Order{OrderId: orderid, Amount: amount, Status: status, FileUrl: fileURL}
 	return updateOrder(&order)
 }
 
-func GetOrder(rec *model.TOrder) error {
+func GetOrder(rec *model.Order) error {
 	return getOrder(rec)
 }
 
-func GetOrderListByUserName(key string, rec []model.TOrder) error {
+func GetOrderListByUserName(key string, rec []model.Order) error {
 	return getOrderListByUserName(key, rec)
 }
 
 func UpdateOrderFileURL(orderid string, fileURL string) error {
-	order := model.TOrder{OrderId: orderid, FileUrl: fileURL}
+	order := model.Order{OrderId: orderid, FileUrl: fileURL}
 	return updateOrderFileURL(&order)
 }
 
 func GetOrderFileURL(orderid string) (string, error) {
-	order := model.TOrder{OrderId: orderid}
+	order := model.Order{OrderId: orderid}
 	err := getOrder(&order)
 	return order.FileUrl, err
 }
