@@ -122,7 +122,7 @@ func TestGetOrderListByUserName(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"t1", args{"test", rec}, false},
-		{"t2", args{"xx", rec}, true},
+		{"t2", args{"xx", rec}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -145,7 +145,7 @@ func TestGetOrderFileURL(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"testpass", args{orderid2}, "yy", false},
-		{"testpass", args{""}, "", false},
+		{"testpass", args{""}, "", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
