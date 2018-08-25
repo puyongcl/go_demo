@@ -17,6 +17,7 @@ var dbconfig *DBCfg
 
 func init() {
 	//root := os.Getenv("GOPATH")
+	//path := root + "/go_demo/bin/conf.json"
 	path := "/home/qydev/workspace/go/src/go_demo/bin/conf.json"
 	//dbconfig = &DBCfg{"localhost", 3306, "root", "root", "test"}
 	file, err := os.Open(path)

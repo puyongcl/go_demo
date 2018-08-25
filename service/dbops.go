@@ -1,10 +1,10 @@
 package service
 
 import (
-	"gorm"
+	"fmt"
 	"go_demo/db"
 	"go_demo/model"
-	"fmt"
+	"gorm"
 )
 
 var dbConn *gorm.DB

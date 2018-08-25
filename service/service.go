@@ -1,14 +1,20 @@
 package service
 
 import (
-	"time"
+	"errors"
+	"go_demo/common/util"
 	"go_demo/model"
+	"mime/multipart"
+	"time"
 )
 
 func AddNewOrder(username string, amount float64, status string, fileURL string) error {
-	orderid := NewOrderID()
+	orderid, err := util.NewOrderID()
+	if err != nil {
+		return errors.New("add new order error" + err.Error())
+	}
 	order := model.TOrder{OrderId: orderid, UserName: username, Amount: amount,
-	Status: status, FileUrl: fileURL, CreateAt: time.Now()}
+		Status: status, FileUrl: fileURL, CreateAt: time.Now()}
 
 	return insertNewOrderRecord(&order)
 }
@@ -27,10 +33,16 @@ func GetOrderListByUserName(key string, rec []model.TOrder) error {
 }
 
 func UpdateOrderFileURL(orderid string, fileURL string) error {
-	order := model.TOrder{OrderId:orderid, FileUrl:fileURL}
+	order := model.TOrder{OrderId: orderid, FileUrl: fileURL}
 	return updateOrderFileURL(&order)
 }
 
-func GetOrderFilePath(orderid string) error {
+func GetOrderFileURL(orderid string) (string, error) {
+	order := model.TOrder{OrderId: orderid}
+	err := getOrder(&order)
+	return order.FileUrl, err
+}
 
+func SaveFile(file multipart.File, filepath string) (fileURL string, errR error) {
+	return util.SaveFile(file, filepath)
 }

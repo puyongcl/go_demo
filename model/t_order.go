@@ -10,7 +10,7 @@ import (
 // demo_order
 type TOrder struct {
 	Id       uint      `json:"id" gorm:"primary_key"`
-	OrderId  string    `json:"order_id" gorm:"type:varchar(64)"`
+	OrderId  string    `json:"order_id" gorm:"type:varchar(64);not null;unique"`
 	UserName string    `json:"user_name" gorm:"type:varchar(64)"`
 	Amount   float64   `json:"amount" gorm:"type:float"`
 	Status   string    `json:"status" gorm:"type:varchar(64)"`
