@@ -2,24 +2,14 @@ package db
 
 import (
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
-func clearTables() {
-	db.Exec("truncate DemoOrder")
-}
-
-func TestMain(m *testing.M) {
-	m.Run()
+func TestGetDB(t *testing.T) {
 	clearTables()
-}
-
-func TestUserWorkFlow(t *testing.T) {
-	t.Run("get", testGetDB)
-}
-
-func testGetDB(t *testing.T) {
 	db := GetDB()
 	if db == nil {
 		t.Errorf("get a nil db")
 	}
+	assert.NotNil(t, db, "db is not be nil")
 }

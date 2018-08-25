@@ -5,15 +5,16 @@ import (
 	"go_demo/handler"
 )
 
-
-func RunRouter() *gin.Engine {
+func RunRouter() {
 	router := gin.Default()
-	v1 := router.Group("/v1")
+	v1 := router.Group("/api/v1")
 	{
-		v1.POST("/user/add_demo_order", handler.AddDemoOrder)
-		v1.PUT("/user/update_demo_order", handler.UpdateDemoOrder)
-		v1.GET("/user/get_demo_order", handler.GetDemoOrder)
-		v1.GET("/user/get_demo_order_list", handler.ListDemoOrder)
+		v1.POST("/orders", handler.AddOrderHandler)
+		v1.POST("/orders/:order_id", handler.UpdateOrderHandler)
+		v1.GET("/orders/:order_id", handler.GetOrderHandler)
+		v1.GET("/orders/:user_name", handler.ListOrderByUserNameHandler)
+		v1.POST("/orders/:order_id", handler.UploadFileHandler)
+		v1.GET("orders/:order_id", handler.DownloadFileHandler)
 	}
 	router.Run(":9527")
 }

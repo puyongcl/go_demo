@@ -67,3 +67,7 @@ func connDB(dbc *config.DBCfg) (*gorm.DB, error) {
 func GetDB() *gorm.DB {
 	return db
 }
+
+func clearTables() {
+	db.Exec("truncate DemoOrder")
+}
