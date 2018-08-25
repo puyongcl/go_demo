@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"go_demo/common/util"
 	"go_demo/model"
 	"go_demo/service"
 	"log"
@@ -20,7 +21,16 @@ func AddOrderHandler(c *gin.Context) {
 		return
 	}
 
-	if err = service.AddNewOrder(username, amount, status, ""); err != nil {
+	// gen order id
+	orderid, err := util.NewOrderID()
+	if err != nil {
+		err1 := "gen order id error：" + err.Error()
+		log.Println(err1)
+		SendErrorRsp(c, err1)
+		return
+	}
+
+	if err = service.AddNewOrder(orderid, username, amount, status, ""); err != nil {
 		err1 := "add new order error：" + err.Error()
 		log.Println(err1)
 		SendErrorRsp(c, err1)
@@ -103,22 +113,15 @@ func UploadFileHandler(c *gin.Context) {
 		return
 	}
 
-	// process file
-	fileURL, err := service.SaveFile(file, service.FileDir)
+	// upload file
+	err = service.UploadFile(file, orderid, service.FileDir)
 	if err != nil {
-		err1 := "save file error：" + err.Error()
+		err1 := "upload file error：" + err.Error()
 		log.Println(err1)
 		SendErrorRsp(c, err1)
 		return
 	}
 
-	// update DB file_url
-	if err = service.UpdateOrderFileURL(orderid, fileURL); err != nil {
-		err1 := "update file path error：" + err.Error()
-		log.Println(err1)
-		SendErrorRsp(c, err1)
-		return
-	}
 	SendNormalRsp(c)
 }
 
