@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"go_demo/db"
 	"go_demo/model"
@@ -35,4 +36,47 @@ func getOrderListByUserName(key string, rec []model.Order) error {
 
 func updateOrderFileURL(rec *model.Order) error {
 	return dbConn.Model(&rec).Where("order_id = ?", rec.OrderId).Update("file_url", rec.FileUrl).Error
+}
+
+func getOrderList(rec []model.Order) error {
+	return dbConn.Find(rec).Error
+}
+
+func transAmount(from string, to string, amount float64) error {
+	if from == "" || to == "" || amount == 0.0 {
+		return errors.New("invalid args")
+	}
+
+	tx := dbConn.Begin()
+	// query
+	var recFrom model.Order
+	err := tx.Where("order_id = ?", from).First(&recFrom).Error
+	if err != nil {
+		return err
+	}
+	if recFrom.Amount < amount {
+		return errors.New("amount not enough")
+	}
+	var recTo model.Order
+	err = tx.Where("order_id = ?", to).First(&recTo).Error
+	if err != nil {
+		return err
+	}
+
+	// update
+	recFrom.Amount -= amount
+	err = tx.Model(&recFrom).Where("order_id = ?", from).Update("amount", recFrom.Amount).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	recTo.Amount += amount
+	err = tx.Model(&recTo).Where("order_id = ?", to).Update("amount", recTo.Amount).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }

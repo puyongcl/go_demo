@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"go_demo/model"
 	"testing"
 )
@@ -156,6 +157,29 @@ func TestGetOrderFileURL(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("GetOrderFileURL() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExportOrderListWithExcel(t *testing.T) {
+	tests := []struct {
+		name             string
+		wantExcelFileURL string
+		wantErr          bool
+	}{
+		// TODO: Add test cases.
+		{"t1", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotExcelFileURL, err := ExportOrderListWithExcel()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ExportOrderListWithExcel() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotExcelFileURL != "" {
+				fmt.Println(gotExcelFileURL)
 			}
 		})
 	}
