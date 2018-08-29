@@ -33,23 +33,24 @@ func NewUUID() (string, error) {
 	return fmt.Sprintf("%x%x%x%x%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
 }
 
-func SaveFile(file multipart.File, filedir string) (fileURL string, errR error) {
+func SaveFile(file multipart.File, filename string, filedir string) (fileURL string, err error) {
 	if file == nil || filedir == "" {
-		return "", errors.New("file is nil or file dir is empty")
+		err = errors.New("file is nil or file dir is empty")
+		return
 	}
 
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
 		err = errors.New("read file error：" + err.Error())
-		return "", err
+		return
 	}
 
-	filename, err := NewUUID()
+	uuid, err := NewUUID()
 	if err != nil {
 		err = errors.New("create file name error：" + err.Error())
-		return "", err
+		return
 	}
-	filepath := filedir + filename
-	err = ioutil.WriteFile(filepath, data, 0666)
-	return filepath, err
+	fileURL = filedir + uuid + "_" + filename
+	err = ioutil.WriteFile(fileURL, data, 0666)
+	return
 }

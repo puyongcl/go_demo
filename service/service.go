@@ -6,86 +6,188 @@ import (
 	"github.com/tealeg/xlsx"
 	"go_demo/common/util"
 	"go_demo/model"
+	"log"
 	"mime/multipart"
+	"os"
 	"time"
 )
 
-func AddNewOrder(orderid string, username string, amount float64, status string, fileURL string) error {
-	if orderid == "" || username == "" || amount == 0.0 || status == "" {
-		return errors.New("username,amount,status can't be empty")
+func init() {
+	// 判断上传文件目录是否存在，不存在则创建
+	_, err := os.Stat(FileDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.Mkdir(FileDir, os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
+		}
 	}
-
-	order := model.Order{OrderId: orderid, UserName: username, Amount: amount,
-		Status: status, FileUrl: fileURL, CreateAt: time.Now()}
-
-	return insertNewOrderRecord(&order)
 }
 
-func UpdateOrder(orderid string, amount float64, status string, fileURL string) error {
-	if orderid == "" || amount == 0.0 || status == "" || fileURL == "" {
-		return errors.New("username,amount,status can not be empty")
+func AddNewOrder(orderid string, username string, amount float64, status string, file multipart.File, filename string, fileDir string) (err error) {
+	//if orderid == "" || username == "" || amount == 0.0 || status == "" {
+	//	err = errors.New("username,amount,status can't be empty")
+	//	log.Println(err.Error())
+	//	return
+	//}
+
+	// save file
+	fileURL, err := util.SaveFile(file, filename, fileDir)
+	if err != nil {
+		err = errors.New("save file error：" + err.Error())
+		log.Println(err.Error())
+		return
 	}
 
-	order := model.Order{OrderId: orderid, Amount: amount, Status: status, FileUrl: fileURL}
-	return updateOrder(&order)
+	// insert
+	err = insertNewOrderRecord(&model.Order{OrderId: orderid, UserName: username, Amount: amount,
+		Status: status, FileUrl: fileURL, CreateAt: time.Now()})
+	if err != nil {
+		err = errors.New("insert a new record error:" + err.Error())
+		log.Println(err.Error())
+	}
+	return
+}
+
+func UpdateOrder(orderid string, amount float64, status string, file multipart.File, filename string, fileDir string) (err error) {
+	//if orderid == "" || amount == 0.0 || status == "" {
+	//	err = errors.New("username,amount,status can not be empty")
+	//	log.Println(err.Error())
+	//	return
+	//}
+
+	// save file
+	fileURL, err := util.SaveFile(file, filename, fileDir)
+	if err != nil {
+		err = errors.New("save file error：" + err.Error())
+		log.Println(err.Error())
+		return
+	}
+
+	// get old record and del old file
+	orderold := model.Order{OrderId: orderid}
+	err = getOrder(&orderold)
+	if err != nil {
+		err = errors.New("get old record error:" + err.Error())
+		log.Println(err.Error())
+		return
+	}
+	if orderold.FileUrl != "" {
+		err = os.Remove(orderold.FileUrl)
+		if err != nil {
+			err = errors.New("remove old file error:" + err.Error())
+			log.Println(err.Error())
+			return
+		}
+	}
+
+	// update DB
+	err = updateOrder(&model.Order{OrderId: orderid, Amount: amount, Status: status, FileUrl: fileURL})
+	if err != nil {
+		err = errors.New("update order error:" + err.Error())
+		log.Println(err.Error())
+	}
+	return
 }
 
 func GetOrder(rec *model.Order) error {
 	return getOrder(rec)
 }
 
-func GetOrderListByUserName(key string, rec []model.Order) error {
-	if key == "" {
-		return errors.New("username can not be empty")
+func GetOrderLIstByUserNamePage(username string, rec *[]model.Order, pageNo uint, size uint) (recordCnt uint, pageCnt uint, err error) {
+	//if username == "" {
+	//	err = errors.New("username can not be empty")
+	//	return
+	//}
+	recordCnt, pageCnt, err = getOrderPageListByUserName(username, rec, pageNo, size)
+	if err != nil {
+		err = errors.New("get order list by username and paging error:" + err.Error())
+		log.Println(err.Error())
 	}
-
-	return getOrderListByUserName(key, rec)
+	return
 }
 
-func UpdateOrderFileURL(orderid string, fileURL string) error {
+func GetOrderListByUserName(key string, rec *[]model.Order) (err error) {
+	//if key == "" {
+	//	err = errors.New("username can not be empty")
+	//	log.Println(err.Error())
+	//	return
+	//}
+	err = getOrderListByUserName(key, rec)
+	if err != nil {
+		err = errors.New("get order list error:" + err.Error())
+		log.Println(err.Error())
+	}
+	return
+}
+
+func UpdateOrderFileURL(orderid string, fileURL string) (err error) {
 	if orderid == "" || fileURL == "" {
-		return errors.New("order id ,file URL can not be empty")
+		err = errors.New("order id and fileURL can not be empty")
+		log.Println(err.Error())
+		return
 	}
 
-	order := model.Order{OrderId: orderid, FileUrl: fileURL}
-	return updateOrderFileURL(&order)
+	return updateOrderFileURL(&model.Order{OrderId: orderid, FileUrl: fileURL})
 }
 
-func GetOrderFileURL(orderid string) (string, error) {
+func GetOrderFileURL(orderid string) (fileURL string, err error) {
 	if orderid == "" {
-		return "", errors.New("order id can not be empty")
+		err = errors.New("order id can not be empty")
+		log.Println(err.Error())
+		return
 	}
 
 	order := model.Order{OrderId: orderid}
-	err := getOrder(&order)
-	return order.FileUrl, err
+	err = getOrder(&order)
+	if err != nil {
+		err = errors.New("get order file URL error:" + err.Error())
+		log.Println(err.Error())
+	}
+	fileURL = order.FileUrl
+	return
 }
 
-func UploadFile(file multipart.File, orderid string, filedir string) (errR error) {
+func UploadFile(file multipart.File, filename string, orderid string, filedir string) (err error) {
 	// save file
-	fileURL, err := util.SaveFile(file, filedir)
+	fileURL, err := util.SaveFile(file, filename, filedir)
 	if err != nil {
-		return errors.New("save file error：" + err.Error())
+		err = errors.New("save file error：" + err.Error())
+		log.Println(err.Error())
+		return
 	}
 
 	// update DB file_url
 	if err = UpdateOrderFileURL(orderid, fileURL); err != nil {
-		return errors.New("update file URL error：" + err.Error())
+		err = errors.New("update file URL error：" + err.Error())
+		log.Println(err.Error())
+		return
 	}
-	return err
+	return
 }
 
-func ExportOrderListWithExcel() (excelFileURL string, errR error) {
+func ExportOrderListWithExcel() (excelFileURL string, err error) {
+	// get all order record
+	var rec []model.Order
+	err = getOrderList(&rec)
+	if err != nil {
+		err = errors.New("get all order record error:" + err.Error())
+		log.Println(err.Error())
+		return
+	}
+
 	var file *xlsx.File
 	var sheet *xlsx.Sheet
 	var row *xlsx.Row
 	var cell *xlsx.Cell
-	var err error
 
 	file = xlsx.NewFile()
 	sheet, err = file.AddSheet("Sheet1")
 	if err != nil {
-		return "", err
+		err = errors.New("add sheet error:" + err.Error())
+		log.Println(err.Error())
+		return
 	}
 	row = sheet.AddRow()
 	cell = row.AddCell()
@@ -98,13 +200,6 @@ func ExportOrderListWithExcel() (excelFileURL string, errR error) {
 	cell.Value = "status"
 	cell = row.AddCell()
 	cell.Value = "file_url"
-
-	//
-	var rec []model.Order
-	err = getOrderList(rec)
-	if err != nil {
-		return "", err
-	}
 
 	for _, order := range rec {
 		row = sheet.AddRow()
@@ -120,15 +215,19 @@ func ExportOrderListWithExcel() (excelFileURL string, errR error) {
 		cell.Value = order.FileUrl //"file_url"
 	}
 
-	filepath, err := util.NewUUID()
+	excelFileURL, err = util.NewUUID()
 	if err != nil {
-		return "", errors.New("gen file name error:" + err.Error())
+		err = errors.New("gen file name error:" + err.Error())
+		log.Println(err.Error())
+		return
 	}
-	filepath += ".xlsx"
-	filepath = FileDir + filepath
-	err = file.Save(filepath)
+	excelFileURL += ".xlsx"
+	excelFileURL = FileDir + excelFileURL
+	err = file.Save(excelFileURL)
 	if err != nil {
-		return "", err
+		err = errors.New("save excel file error:" + err.Error())
+		log.Println(err.Error())
+		return
 	}
-	return filepath, nil
+	return
 }

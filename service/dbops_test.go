@@ -1,6 +1,9 @@
 package service
 
-import "testing"
+import (
+	"go_demo/model"
+	"testing"
+)
 
 func Test_transAmount(t *testing.T) {
 	type args struct {
@@ -24,4 +27,57 @@ func Test_transAmount(t *testing.T) {
 			}
 		})
 	}
+}
+/*
+go test -v -run='none' -benchtime='3s' -bench='BenchmarkDemoZ'
+*/
+func BenchmarkDemoZ(b *testing.B) {
+	var rec []model.Order
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		t1("test_name", &rec, 1, 30)
+		rec[0].Status = "111"
+	}
+}
+
+func BenchmarkDemoZ2(b *testing.B) {
+	var rec []*model.Order
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		t2("test_name", &rec, 1, 30)
+		rec[0].Status = "111"
+	}
+}
+/*
+goos: linux
+goarch: amd64
+pkg: go_demo/service
+BenchmarkDemoZ-4   	    2000	    541159 ns/op
+PASS
+
+goos: linux
+goarch: amd64
+pkg: go_demo/service
+BenchmarkDemoZ2-4   	    2000	    546862 ns/op
+PASS
+*/
+
+func t1(username string, rec *[]model.Order, pageNo uint, size uint) (recordCnt uint, pageCnt uint, err error) {
+	if pageNo == 0 {
+		pageNo = 1
+	}
+	dbConn.Model(&model.Order{}).Count(&recordCnt)
+	err = dbConn.Where("user_name = ?", username).Limit(size).Offset((pageNo - 1) * size).Find(rec).Error
+	pageCnt = (recordCnt + size - 1) / size
+	return
+}
+
+func t2(username string, rec *[]*model.Order, pageNo uint, size uint) (recordCnt uint, pageCnt uint, err error) {
+	if pageNo == 0 {
+		pageNo = 1
+	}
+	dbConn.Model(&model.Order{}).Count(&recordCnt)
+	err = dbConn.Where("user_name = ?", username).Limit(size).Offset((pageNo - 1) * size).Find(rec).Error
+	pageCnt = (recordCnt + size - 1) / size
+	return
 }

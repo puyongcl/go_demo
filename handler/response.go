@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"go_demo/model"
+	"gopkg.in/gin-gonic/gin.v1"
 )
 
 type BaseRSP struct {
@@ -21,6 +21,13 @@ type QueryListRsp struct {
 	Data []model.Order `json:"data"`
 }
 
+type QueryListPageRsp struct {
+	BaseRSP
+	Data        []model.Order `json:"data"`
+	RecordCount uint          `json:"record_count"`
+	PageCount   uint          `json:"page_count"`
+}
+
 func SendSuccessRsp(c *gin.Context, data interface{}) {
 	c.JSON(200, data)
 }
@@ -31,9 +38,8 @@ func SendErrorRsp(c *gin.Context, errMsg string) {
 
 // 成功响应所有操作
 func SendNormalRsp(c *gin.Context) {
-	var rsp BaseRSP
-	rsp.ErrMsg = ""
-	rsp.Success = true
-	rsp.Info = "success"
-	SendSuccessRsp(c, rsp)
+	SendSuccessRsp(c, BaseRSP{
+		Success: true,
+		Info:    "success",
+	})
 }
